@@ -5,16 +5,21 @@ buddy system memory allocator
 
 ## System Storage
 
+![buddy_system](https://raw.github.com/godspeed1989/buddy_allocator/master/buddy_system.png)
+![buddy_system1](https://raw.github.com/godspeed1989/buddy_allocator/master/buddy_system1.png)
 
+系统中的空闲内存块总是两两分组的，每组中的两个内存块被称作伙伴。
 
-![buddy_system](https://github.com/godspeed1989/buddy_allocator/master/buddy_system.png)
+伙伴的分配可以是彼此独立的，但如果两个伙伴都是空闲的，那么内核将会将其合并成一个更大的内存块，作为下一层次上某个内存块的伙伴。
+
 ===============
 
 ## Buddy Allocator
 
+![buddy_alloc](https://raw.github.com/godspeed1989/buddy_allocator/master/buddy_alloc.png)
 
+每次把一个大的内存块对半切分，一直切到需要的大小。
 
-![buddy_alloc](https://github.com/godspeed1989/buddy_allocator/master/buddy_alloc.png)
 ===============
 
 ## Buddy Free
@@ -32,6 +37,8 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 }
 ```
 
+![buddy_free](https://raw.github.com/godspeed1989/buddy_allocator/master/buddy_free.png)
+
 假设现在有一个将要释放的页，它的order为0，page_idx为10。
 
 则先计算它的伙伴 10^(1<<0) = 11，然后计算合并后的起始页偏移为10&~(1<<0) = 10。
@@ -40,5 +47,4 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 
 如此推导下去。
 
-![buddy_free](https://github.com/godspeed1989/buddy_allocator/master/buddy_free.png)
 ===============
