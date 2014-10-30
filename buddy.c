@@ -136,12 +136,12 @@ static int destroy_compound_pages(struct page *page, unsigned long order)
     return bad;
 }
 
-static inline int PageCompound(struct page *page)
+static int PageCompound(struct page *page)
 {
     return (page->flags & ((1UL<<PG_head)|(1UL<<PG_tail)));
 }
 
-static inline int page_is_buddy(struct page *buddy,
+static int page_is_buddy(struct page *buddy,
                                 unsigned int order)
 {
     if (PageBuddy(buddy) && (buddy->order == order))

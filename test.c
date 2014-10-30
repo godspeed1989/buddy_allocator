@@ -14,7 +14,7 @@ static int mem_block_init(void)
 {
     int pages_size;
     unsigned long start_addr;
-#define _NPAGES 491
+#define _NPAGES 1024
     // init global memory block
     pages_size = _NPAGES * sizeof(struct page);
     global_mem_block.pages = (struct page*)malloc(pages_size);
@@ -51,15 +51,11 @@ int main()
     dump_print(zone);
     printf("init done\n");
 
-    p = buddy_get_pages(zone, 0);
-    dump_print(zone);
-    buddy_free_pages(zone, p);
-    dump_print(zone);
-
-    p = buddy_get_pages(zone, 1);
-    dump_print(zone);
-    buddy_free_pages(zone, p);
-    dump_print(zone);
+    // print to .dot file
+    p = buddy_get_pages(zone, 2);
+    dump_print_dot(zone);
+    if (p)
+        buddy_free_pages(zone, p);
 
     mem_block_destroy();
     return 0;

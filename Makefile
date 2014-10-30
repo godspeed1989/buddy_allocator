@@ -17,5 +17,9 @@ dump_print.o: dump_print.c $(HEADERS)
 test.o: test.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $<
 
+run: test
+	./test
+	dot bdgraph.dot -Tpng > bd.png
+
 clean:
 	rm -rf *.o test

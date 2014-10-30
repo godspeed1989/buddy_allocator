@@ -9,13 +9,13 @@ struct list_head
 #define LIST_POISON1  ((void *)0x00100100)
 #define LIST_POISON2  ((void *)0x00200200)
 
-static inline void INIT_LIST_HEAD(struct list_head *list)
+static void INIT_LIST_HEAD(struct list_head *list)
 {
     list->next = list;
     list->prev = list;
 }
 
-static inline void __list_add(struct list_head *new, struct list_head *prev, struct list_head *next)
+static void __list_add(struct list_head *new, struct list_head *prev, struct list_head *next)
 {
     next->prev = new;
     new->next = next;
@@ -23,35 +23,35 @@ static inline void __list_add(struct list_head *new, struct list_head *prev, str
     prev->next = new;
 }
 
-static inline void list_add(struct list_head *new, struct list_head *head)
+static void list_add(struct list_head *new, struct list_head *head)
 {
     __list_add(new, head, head->next);
 }
 
-static inline void list_add_tail(struct list_head *new, struct list_head *head)
+static void list_add_tail(struct list_head *new, struct list_head *head)
 {
     __list_add(new, head->prev, head);
 }
 
-static inline void __list_del(struct list_head *prev, struct list_head *next)
+static void __list_del(struct list_head *prev, struct list_head *next)
 {
     next->prev = prev;
     prev->next = next;
 }
 
-static inline void __list_del_entry(struct list_head *entry)
+static void __list_del_entry(struct list_head *entry)
 {
     __list_del(entry->prev, entry->next);
 }
 
-static inline void list_del(struct list_head *entry)
+static void list_del(struct list_head *entry)
 {
     __list_del(entry->prev, entry->next);
     entry->next = LIST_POISON1;
     entry->prev = LIST_POISON2;
 }
 
-static inline void list_replace(struct list_head *old, struct list_head *new)
+static void list_replace(struct list_head *old, struct list_head *new)
 {
     new->next = old->next;
     new->next->prev = new;
@@ -59,7 +59,7 @@ static inline void list_replace(struct list_head *old, struct list_head *new)
     new->prev->next = new;
 }
 
-static inline int list_empty(const struct list_head *head)
+static int list_empty(const struct list_head *head)
 {
     return head->next == head;
 }
@@ -69,5 +69,8 @@ static inline int list_empty(const struct list_head *head)
 
 #define list_entry(ptr, type, member) \
         container_of(ptr, type, member)
+
+#define list_for_each(pos, head) \
+        for (pos = (head)->next; pos != (head); pos = pos->next)
 
 #endif

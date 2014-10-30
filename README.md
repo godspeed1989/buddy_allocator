@@ -48,3 +48,9 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 如此推导下去。
 
 ===============
+
+## dump_print_dot()
+
+将Buddy系统状态打印至GraphViz的.dot文件中。
+
+![dump_print](https://raw.github.com/godspeed1989/buddy_allocator/master/dump.png)

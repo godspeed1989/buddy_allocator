@@ -4,6 +4,7 @@
 #include "list.h"
 #include <stdio.h>  //printf
 #include <string.h> //memset
+#include <assert.h> //assert
 
 /*
  * 标记Page所处的状态
@@ -62,47 +63,47 @@ void         buddy_free_pages(struct mem_zone *zone,
  * 一类是组合页（compound page），
  * 组合页的第一个是head，其余为tail。
  * */
-static inline void __SetPageHead(struct page *page)
+static void __SetPageHead(struct page *page)
 {
     page->flags |= (1UL<<PG_head);
 }
 
-static inline void __SetPageTail(struct page *page)
+static void __SetPageTail(struct page *page)
 {
     page->flags |= (1UL<<PG_tail);
 }
 
-static inline void __SetPageBuddy(struct page *page)
+static void __SetPageBuddy(struct page *page)
 {
     page->flags |= (1UL<<PG_buddy);
 }
 /**/
-static inline void __ClearPageHead(struct page *page)
+static void __ClearPageHead(struct page *page)
 {
     page->flags &= ~(1UL<<PG_head);
 }
 
-static inline void __ClearPageTail(struct page *page)
+static void __ClearPageTail(struct page *page)
 {
     page->flags &= ~(1UL<<PG_tail);
 }
 
-static inline void __ClearPageBuddy(struct page *page)
+static void __ClearPageBuddy(struct page *page)
 {
     page->flags &= ~(1UL<<PG_buddy);
 }
 /**/
-static inline int PageHead(struct page *page)
+static int PageHead(struct page *page)
 {
     return (page->flags & (1UL<<PG_head));
 }
 
-static inline int PageTail(struct page *page)
+static int PageTail(struct page *page)
 {
     return (page->flags & (1UL<<PG_tail));
 }
 
-static inline int PageBuddy(struct page *page)
+static int PageBuddy(struct page *page)
 {
     return (page->flags & (1UL<<PG_buddy));
 }
@@ -110,13 +111,13 @@ static inline int PageBuddy(struct page *page)
 /*
  * 设置页的order
  * */
-static inline void set_page_order(struct page *page, unsigned long order)
+static void set_page_order(struct page *page, unsigned long order)
 {
     page->order = order;
     __SetPageBuddy(page);
 }
 
-static inline void rmv_page_order(struct page *page)
+static void rmv_page_order(struct page *page)
 {
     page->order = 0;
     __ClearPageBuddy(page);
@@ -125,13 +126,13 @@ static inline void rmv_page_order(struct page *page)
 /*
  * 查找buddy页
  * */
-static inline unsigned long
+static unsigned long
 __find_buddy_index(unsigned long page_idx, unsigned int order)
 {
     return (page_idx ^ (1 << order));
 }
 
-static inline unsigned long
+static unsigned long
 __find_combined_index(unsigned long page_idx, unsigned int order)
 {
     return (page_idx & ~(1 << order));
@@ -140,24 +141,26 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 /*
  * 组合页的order记录在第二个页面的prev指针里
  * */
-static inline unsigned long compound_order(struct page *page)
+static unsigned long compound_order(struct page *page)
 {
     if (!PageHead(page))
         return 0; //单页
     return (unsigned long)page[1].lru.prev;
 }
 
-static inline void set_compound_order(struct page *page, unsigned long order)
+static void set_compound_order(struct page *page, unsigned long order)
 {
     page[1].lru.prev = (void *)order;
 }
 
-static inline void BUDDY_BUG(const char *f, int line)
+static void BUDDY_BUG(const char *f, int line)
 {
     printf("BUDDY_BUG in %s, %d.\n", f, line);
+    assert(0);
 }
 
 // print buddy system status
-void dump_print();
+void dump_print(struct mem_zone *zone);
+void dump_print_dot(struct mem_zone *zone);
 
 #endif
