@@ -55,9 +55,12 @@ int main()
 
     // print to .dot file
     p = buddy_get_pages(zone, 2);
+    printf("num free: %ld\n", buddy_num_free_page(zone));
     dump_print_dot(zone);
     if (p)
         buddy_free_pages(zone, p);
+
+    // TODO: more comprehensive test
 
     mem_block_destroy();
     return 0;

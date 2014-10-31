@@ -56,6 +56,7 @@ struct page *buddy_get_pages(struct mem_zone *zone,
                              unsigned long order);
 void         buddy_free_pages(struct mem_zone *zone,
                               struct page *page);
+unsigned long buddy_num_free_page(struct mem_zone *zone);
 
 /*
  * 页分为两类：一类是单页（zero page）,

@@ -212,3 +212,13 @@ struct page *virt_to_page(struct mem_zone *zone, void *ptr)
     page = zone->first_page + page_idx;
     return page;
 }
+
+unsigned long buddy_num_free_page(struct mem_zone *zone)
+{
+    unsigned long i, ret;
+    for (i = 0, ret = 0; i < BUDDY_MAX_ORDER; i++)
+    {
+        ret += zone->free_area[i].nr_free * (1UL<<i);
+    }
+    return ret;
+}

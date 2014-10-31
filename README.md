@@ -13,11 +13,16 @@ buddy system memory allocator from Linux kernel
 如果两个伙伴都是空闲的，会将其合并成一个更大的内存块，作为下一层次上某个内存块的伙伴。
 
 page分为两类：
+
 + 属于Buddy系统（PG_buddy，待分配）
+
 	page->order记录order（page所属的free_area也表示了其order），用于合并时的检测
+
 + 不属于Buddy系统（已分配）
+
 	单页：page->order记录order
-	组合页：首个（PG_head）page记录order，其余（PG_tail）指向首页，用于释放时的解组合
+
+	组合页：首个（PG_head）page记录order，其余（PG_tail）指向首页。order用于释放时的解组合
 
 ===============
 
@@ -67,4 +72,5 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 ## Compilers
 
 VS2008
+
 GCC
