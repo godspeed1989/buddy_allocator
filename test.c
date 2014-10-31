@@ -16,10 +16,12 @@ static int mem_block_init(void)
     unsigned long start_addr;
 #define _NPAGES 1024
     // init global memory block
+    // all pages area
     pages_size = _NPAGES * sizeof(struct page);
     global_mem_block.pages = (struct page*)malloc(pages_size);
     if (!global_mem_block.pages)
         return -1;
+    // address area (optional)
     start_addr = (unsigned long)malloc(_NPAGES * BUDDY_PAGE_SIZE);
     if (!start_addr)
     {

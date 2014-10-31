@@ -10,15 +10,14 @@
  * 标记Page所处的状态
  * */
 enum pageflags{
-    PG_head,
-    PG_tail,
-    PG_buddy,
+    PG_head,    //不在buddy系统内，首个页
+    PG_tail,    //不在buddy系统内，首页之外的页面
+    PG_buddy,   //在buddy系统内
 };
 
 #define BUDDY_PAGE_SHIFT    (12UL)
 #define BUDDY_PAGE_SIZE     (1UL << BUDDY_PAGE_SHIFT)
 #define BUDDY_MAX_ORDER     (9UL)
-#define MAX_ORDER_NR_PAGES  (1UL << (MAX_ORDER - 1))
 
 struct page
 {
@@ -109,15 +108,15 @@ static int PageBuddy(struct page *page)
 }
 
 /*
- * 设置页的order
+ * 设置页的order和PG_buddy标志
  * */
-static void set_page_order(struct page *page, unsigned long order)
+static void set_page_order_buddy(struct page *page, unsigned long order)
 {
     page->order = order;
     __SetPageBuddy(page);
 }
 
-static void rmv_page_order(struct page *page)
+static void rmv_page_order_buddy(struct page *page)
 {
     page->order = 0;
     __ClearPageBuddy(page);
@@ -139,18 +138,21 @@ __find_combined_index(unsigned long page_idx, unsigned int order)
 }
 
 /*
- * 组合页的order记录在第二个页面的prev指针里
+ * Linux内核将组合页的order记录在第二个页面的prev指针里
+ * 本系统将组合页的order记录在首个页面的page->order域里
  * */
 static unsigned long compound_order(struct page *page)
 {
     if (!PageHead(page))
         return 0; //单页
-    return (unsigned long)page[1].lru.prev;
+    //return (unsigned long)page[1].lru.prev;
+    return page->order;
 }
 
 static void set_compound_order(struct page *page, unsigned long order)
 {
-    page[1].lru.prev = (void *)order;
+    //page[1].lru.prev = (void *)order;
+    page->order = order;
 }
 
 static void BUDDY_BUG(const char *f, int line)

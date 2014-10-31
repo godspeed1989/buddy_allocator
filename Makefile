@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall -Wno-unused-function
 OBJS=buddy.o test.o dump_print.o
 HEADERS=buddy.h
 

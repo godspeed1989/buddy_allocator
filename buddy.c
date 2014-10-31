@@ -22,11 +22,11 @@ void buddy_system_init(struct mem_zone *zone,
         INIT_LIST_HEAD(&area->free_list);
         area->nr_free = 0;
     }
+    memset(start_page, 0, page_num * sizeof(struct page));
     // init and free each page
     for (i = 0; i < page_num; i++)
     {
         page = zone->first_page + i;
-        memset(page, 0, sizeof(struct page));
         INIT_LIST_HEAD(&page->lru);
         // TODO: init page->lock
         buddy_free_pages(zone, page);
@@ -39,7 +39,7 @@ static void prepare_compound_pages(struct page *page, unsigned long order)
     unsigned long i;
     unsigned long nr_pages = (1UL<<order);
 
-    // 标记页的大小(order值)
+    // 首个page记录组合页的order值
     set_compound_order(page, order);
     __SetPageHead(page); // 首页设置head标志
     for(i = 1; i < nr_pages; i++)
@@ -64,7 +64,7 @@ static void expand(struct mem_zone *zone, struct page *page,
         list_add(&page[size].lru, &area->free_list);
         area->nr_free++;
         // set page order
-        set_page_order(&page[size], high_order);
+        set_page_order_buddy(&page[size], high_order);
     }
 }
 
@@ -82,16 +82,18 @@ static struct page *__alloc_page(unsigned long order,
         if (list_empty(&area->free_list)) {
             continue;
         }
+        // remove closest size page
         page = list_entry(area->free_list.next, struct page, lru);
         list_del(&page->lru);
-        rmv_page_order(page);
+        rmv_page_order_buddy(page);
         area->nr_free--;
         // expand to lower order
         expand(zone, page, order, current_order, area);
-        if (page && order) {
+        // compound page
+        if (order > 0)
             prepare_compound_pages(page, order);
-        }
-        page->order = order; // still record order, though not in buddy
+        else // single page
+            page->order = 0;
         return page;
     }
     return NULL;
@@ -136,25 +138,18 @@ static int destroy_compound_pages(struct page *page, unsigned long order)
     return bad;
 }
 
-static int PageCompound(struct page *page)
-{
-    return (page->flags & ((1UL<<PG_head)|(1UL<<PG_tail)));
-}
+#define PageCompound(page) \
+        (page->flags & ((1UL<<PG_head)|(1UL<<PG_tail)))
 
-static int page_is_buddy(struct page *buddy,
-                                unsigned int order)
-{
-    if (PageBuddy(buddy) && (buddy->order == order))
-        return 1;
-    return 0;
-}
+#define page_is_buddy(page,order) \
+        (PageBuddy(page) && (page->order == order))
 
 void buddy_free_pages(struct mem_zone *zone,
                       struct page *page)
 {
-    unsigned long page_idx = page - zone->first_page;
     unsigned long order = compound_order(page);
     unsigned long buddy_idx = 0, combinded_idx = 0;
+    unsigned long page_idx = page - zone->first_page;
 
     //TODO: lock zone->lock
     if (PageCompound(page))
@@ -164,21 +159,22 @@ void buddy_free_pages(struct mem_zone *zone,
     while (order < BUDDY_MAX_ORDER-1)
     {
         struct page *buddy;
-        // find and delete buddy
+        // find and delete buddy to combine
         buddy_idx = __find_buddy_index(page_idx, order);
         buddy = page + (buddy_idx - page_idx);
         if (!page_is_buddy(buddy, order))
             break;
         list_del(&buddy->lru);
         zone->free_area[order].nr_free--;
-        rmv_page_order(buddy);
-        // combine
+        // remove buddy's flag and order
+        rmv_page_order_buddy(buddy);
+        // update page and page_idx after combined
         combinded_idx = __find_combined_index(page_idx, order);
         page = page + (combinded_idx - page_idx);
         page_idx = combinded_idx;
         order++;
     }
-    set_page_order(page, order);
+    set_page_order_buddy(page, order);
     list_add(&page->lru, &zone->free_area[order].free_list);
     zone->free_area[order].nr_free++;
     //TODO: unlock zone->lock
