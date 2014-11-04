@@ -1,4 +1,5 @@
 #include "buddy.h"
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +43,45 @@ static void mem_block_destroy(void)
     free((void*)global_mem_block.zone.start_addr);
 }
 
+void do_test()
+{
+#define    RUN_SECONDS    20
+    time_t start;
+    struct page *page;
+    struct list_head page_list;
+    unsigned long loop, order;
+    struct mem_zone *zone = &global_mem_block.zone;
+
+    loop = 0;
+    start = time(NULL);
+    srand((unsigned int)start);
+    INIT_LIST_HEAD(&page_list);
+    for (;;)
+    {
+        // run n seconds test
+        if (loop % 1000 == 0 && time(NULL)-start >= RUN_SECONDS)
+            break;
+        loop++;
+        if (rand () & 1)
+        // allocate
+        {
+            order = (unsigned long)rand() % BUDDY_MAX_ORDER;
+            page = buddy_get_pages(zone, order);
+            if (page)
+               list_add(&page->lru, &page_list);
+        }
+        else if (!list_empty(&page_list))
+        // free
+        {
+            page = list_entry(page_list.next, struct page, lru);
+            list_del(&page->lru);
+            buddy_free_pages(zone, page);
+        }
+    }
+    printf("do_test(): %ld loops in %ld s\n",
+           loop, (unsigned long)(time(NULL)-start));
+}
+
 int main()
 {
     struct page *p;
@@ -60,7 +100,8 @@ int main()
     if (p)
         buddy_free_pages(zone, p);
 
-    // TODO: more comprehensive test
+    // more comprehensive test
+    do_test();
 
     mem_block_destroy();
     return 0;

@@ -41,7 +41,7 @@ void dump_print_dot(struct mem_zone *zone)
     fprintf(fout, "\"];\n\n");
 #if PRINT_PAGES_INFO
     fprintf(fout, "pages [style=filled,color=gray,label = \"{");
-    for (i = zone->page_num, k = 0; i >=0 ; i--)
+    for (i = zone->page_num - 1, k = 0; i >=0 ; i--)
     {
         if (PageBuddy(&zone->first_page[i]))
         {
