@@ -23,7 +23,6 @@ struct page
 {
     // spin_lock        lock;
     struct list_head    lru;
-    unsigned char       buddy;
     unsigned long       flags;
     union {
         unsigned long   order;

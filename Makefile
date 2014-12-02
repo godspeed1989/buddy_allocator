@@ -2,6 +2,12 @@ CC=gcc
 CFLAGS=-g -Wall -Wno-unused-function
 OBJS=buddy.o test.o dump_print.o
 HEADERS=buddy.h
+RM=rm -rf
+
+# in cmd of windows
+ifeq ($(SHELL),sh.exe)
+    RM := del /f/q
+endif
 
 all: test
 
@@ -22,4 +28,4 @@ run: test
 	dot bdgraph.dot -Tpng > bd.png
 
 clean:
-	rm -rf *.o test
+	$(RM) *.o test test.exe
